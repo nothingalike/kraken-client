@@ -1,4 +1,4 @@
-# Kraken API Client
+# Kraken API Client UNOFFICIAL
 
 A Rust client library for the [Kraken cryptocurrency exchange API](https://docs.kraken.com/rest/).
 
@@ -27,10 +27,10 @@ kraken_client = "0.1.0"
 ### Basic Example
 
 ```rust
-use kraken_client::{KrakenClient, Config};
+use kraken_client::{client::KrakenClient, config::Config, error::Result};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     // Create a client with default configuration
     let client = KrakenClient::default()?;
     
@@ -45,10 +45,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Authentication
 
 ```rust
-use kraken_client::{KrakenClient, Config};
+use kraken_client::{client::KrakenClient, config::Config, error::Result};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     // Create a client with API key and secret
     let config = Config::new()
         .with_api_key("your-api-key")
@@ -67,10 +67,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Market Data
 
 ```rust
-use kraken_client::{KrakenClient, Config};
+use kraken_client::{client::KrakenClient, error::Result};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     let client = KrakenClient::default()?;
     
     // Get ticker information for BTC/USD
@@ -93,11 +93,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### Trading
 
 ```rust
-use kraken_client::{KrakenClient, Config};
+use kraken_client::{client::KrakenClient, config::Config, error::Result};
 use kraken_client::models::trading::{Order, OrderSide, OrderType};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     let config = Config::new()
         .with_api_key("your-api-key")
         .with_api_secret("your-api-secret");
@@ -120,36 +120,57 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ### WebSocket
 
 ```rust
-use kraken_client::{KrakenClient, Config};
-use kraken_client::models::websocket::{WebSocketSubscriptionRequest, WebSocketSubscriptionType, WebSocketMessage};
+use kraken_client::{
+    client::KrakenClient,
+    models::websocket::{WebSocketMessage, WebSocketSubscriptionRequest},
+    error::Result,
+};
+use std::time::Duration;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
+    // Create a new client
     let client = KrakenClient::default()?;
     
-    // Create a WebSocket API instance
-    let mut ws = client.websocket();
+    // Create a new WebSocket API instance
+    let mut ws_api = client.websocket();
     
     // Connect to the WebSocket API
-    ws.connect().await?;
+    let mut message_rx = ws_api.connect().await?;
     
-    // Subscribe to ticker for BTC/USD
-    let request = WebSocketSubscriptionRequest::new(WebSocketSubscriptionType::Ticker)
-        .with_pairs(vec!["XBT/USD".to_string()]);
+    // Subscribe to the ticker channel for BTC/USD
+    let subscription = WebSocketSubscriptionRequest::new()
+        .add_pair("XBT/USD")
+        .add_subscription("ticker");
     
-    ws.subscribe(request).await?;
+    ws_api.subscribe(subscription).await?;
     
-    // Receive messages
-    while let Ok(message) = ws.receive().await {
-        match message {
-            WebSocketMessage::DataArray(data) => {
-                println!("Received data: {:?}", data);
-            }
-            _ => {
-                println!("Received message: {:?}", message);
+    // Process messages for 10 seconds
+    let start = std::time::Instant::now();
+    while start.elapsed() < Duration::from_secs(10) {
+        if let Some(message) = message_rx.recv().await {
+            match message {
+                Ok(WebSocketMessage::SubscriptionStatus { status, pair, .. }) => {
+                    println!("Subscription status: {}", status);
+                    if let Some(pair) = pair {
+                        println!("Pair: {}", pair);
+                    }
+                }
+                Ok(WebSocketMessage::DataArray(data)) => {
+                    println!("Received data: {:?}", data);
+                }
+                Ok(msg) => {
+                    println!("Received message: {:?}", msg);
+                }
+                Err(e) => {
+                    eprintln!("Error: {}", e);
+                }
             }
         }
     }
+    
+    // Close the connection
+    ws_api.close().await?;
     
     Ok(())
 }
