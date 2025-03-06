@@ -1,4 +1,4 @@
-use kraken_client::{
+use na_kraken_client::{
     client::KrakenClient,
     models::websocket::{WebSocketMessage, WebSocketSubscriptionRequest},
     error::Result,

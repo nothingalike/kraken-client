@@ -1,11 +1,11 @@
 [package]
-name = "kraken_client"
+name = "na-kraken-client"
 version = "0.1.0"
 edition = "2021"
 description = "A Rust client for the Kraken cryptocurrency exchange API"
 authors = ["Kyle Johns <kjohns1337@gmail.com>"]
 license = "MIT"
-repository = "https://github.com/nothingalike/kraken_client"
+repository = "https://github.com/nothingalike/kraken-client"
 readme = "README.md"
 keywords = ["cryptocurrency", "kraken", "api", "trading", "exchange"]
 categories = ["api-bindings", "web-programming", "asynchronous"]

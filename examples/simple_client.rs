@@ -1,4 +1,4 @@
-use kraken_client::{KrakenClient, Config, Error};
+use na_kraken_client::{KrakenClient, Config, Error};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
