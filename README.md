@@ -15,11 +15,10 @@ A Rust client library for the [Kraken cryptocurrency exchange API](https://docs.
 
 ## Installation
 
-Add this to your `Cargo.toml`:
+Add this to your project:
 
-```toml
-[dependencies]
-kraken_client = "0.1.0"
+```bash
+cargo add na-kraken-client
 ```
 
 ## Usage
