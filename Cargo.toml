@@ -1,6 +1,6 @@
 [package]
 name = "na-kraken-client"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "A Rust client for the Kraken cryptocurrency exchange API"
 authors = ["Kyle Johns <kjohns1337@gmail.com>"]
